@@ -88,10 +88,12 @@ class InteractionBase:
     crt_ids: np.ndarray = None
     crt_times: np.ndarray = None
     topology: str = None
+    nu_momentum: np.ndarray = None
 
     # Fixed-length attributes
     _fixed_length_attrs = (
         ("vertex", 3),
+        ("nu_momentum", 3),
         ("particle_counts", len(PID_LABELS) - 1),
         ("primary_particle_counts", len(PID_LABELS) - 1),
     )
@@ -134,6 +136,9 @@ class InteractionBase:
             f"| Size: {self.size:<5} | Topology: {self.topology:<10} "
             f"| Match: {match:<3})"
         )
+        if self.nu_momentum is not None:
+            info += f"\n- Neutrino momentum: {self.nu_momentum} ({self.units})"
+            info += f"\n- Neutrino direction: {self.nu_direction}"
         if len(self.particles):
             info += "\n" + len(info) * "-"
             for particle in self.particles:
@@ -350,6 +355,26 @@ class InteractionBase:
 
     @topology.setter
     def topology(self, topology):
+        pass
+
+    @property
+    def nu_direction(self):
+        """Reconstructed neutrino direction based on momentum.
+
+        Returns
+        -------
+        np.ndarray
+            (3) Neutrino direction unit vector
+        """
+        if self.nu_momentum is None:
+            return None
+        norm = np.linalg.norm(self.nu_momentum)
+        if norm > 0:
+            return self.nu_momentum / norm
+        return np.zeros(3, dtype=self.nu_momentum.dtype)
+
+    @nu_direction.setter
+    def nu_direction(self, nu_direction):
         pass
 
     @classmethod
